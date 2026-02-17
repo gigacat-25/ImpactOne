@@ -128,16 +128,16 @@ export default function HistoryPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline tracking-tight">Booking History</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Booking History</h1>
+                    <p className="text-sm md:text-base text-muted-foreground">
                         {isAdmin
                             ? 'A log of all past and current booking requests.'
                             : 'A log of your past and current booking requests.'}
                     </p>
                 </div>
-                <Button onClick={exportToCSV} disabled={!bookings || bookings.length === 0}>
+                <Button onClick={exportToCSV} disabled={!bookings || bookings.length === 0} className="w-full md:w-auto">
                     <FileDown className="mr-2 h-4 w-4" />
                     Export CSV
                 </Button>
@@ -164,7 +164,8 @@ export default function HistoryPage() {
                 </div>
             )}
 
-            <div className="border rounded-lg bg-card overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block border rounded-lg bg-card overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -248,6 +249,85 @@ export default function HistoryPage() {
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="block md:hidden space-y-4">
+                {loading && (
+                    <div className="flex justify-center items-center p-8 border rounded-lg bg-card">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <span className="ml-2">Loading...</span>
+                    </div>
+                )}
+                {!loading && !error && (!bookings || bookings.length === 0) && (
+                    <div className="text-center text-muted-foreground p-8 border rounded-lg bg-card">
+                        {isAdmin ? 'No bookings found in the system.' : 'You have no booking history yet.'}
+                    </div>
+                )}
+                {!loading && !error && bookings?.map((booking) => (
+                    <div key={booking.id} className="border rounded-lg bg-card p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-base truncate">{booking.event_title || 'N/A'}</h3>
+                                <p className="text-xs font-mono text-muted-foreground">ID: {booking.id.substring(0, 8).toUpperCase()}</p>
+                            </div>
+                            <Badge
+                                variant={getBadgeVariant(booking.status)}
+                                className={`cursor-pointer shrink-0 ${booking.status === "Approved" ? "bg-green-600 text-white hover:bg-green-700" :
+                                    booking.status === "Cancelled" ? "bg-gray-500 text-white hover:bg-gray-600" : ""
+                                    }`}
+                                onClick={() => handleStatusClick(booking)}
+                            >
+                                {booking.status || 'Unknown'}
+                            </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <p className="text-muted-foreground text-xs">Resource</p>
+                                <p className="font-medium truncate">{booking.resource_name || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-muted-foreground text-xs">Department</p>
+                                <p className="font-medium truncate">{booking.department || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-muted-foreground text-xs">Date</p>
+                                <p className="font-medium">{booking.booking_date ? format(new Date(booking.booking_date), 'MMM dd, yyyy') : 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-muted-foreground text-xs">Attendees</p>
+                                <p className="font-medium">{booking.attendees || 0}</p>
+                            </div>
+                            {isAdmin && (
+                                <div>
+                                    <p className="text-muted-foreground text-xs">Requester</p>
+                                    <p className="font-medium truncate">{booking.requester_name || 'N/A'}</p>
+                                </div>
+                            )}
+                            <div>
+                                <p className="text-muted-foreground text-xs">Faculty</p>
+                                <p className="font-medium truncate">{booking.faculty_incharge || 'N/A'}</p>
+                            </div>
+                            <div className={isAdmin ? "" : "col-span-2"}>
+                                <p className="text-muted-foreground text-xs">Contact</p>
+                                <p className="font-medium truncate">{booking.contact_number || 'N/A'}</p>
+                            </div>
+                        </div>
+
+                        {booking.status === 'Approved' && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedBooking(booking)}
+                                className="w-full"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download Acknowledgment
+                            </Button>
+                        )}
+                    </div>
+                ))}
             </div>
 
             {/* Summary Stats - only show if we have data and no errors */}

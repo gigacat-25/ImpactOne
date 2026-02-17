@@ -252,8 +252,8 @@ export default function PendingApprovalsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold font-headline tracking-tight">Pending Approvals</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Pending Approvals</h1>
+                <p className="text-sm md:text-base text-muted-foreground">
                     Review and approve or reject booking requests
                 </p>
             </div>
@@ -291,24 +291,24 @@ export default function PendingApprovalsPage() {
                             <CardContent className="pt-6">
                                 <div className="space-y-4">
                                     {/* Header with User Info */}
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-start gap-3">
-                                            <Avatar className="h-10 w-10">
+                                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                            <Avatar className="h-10 w-10 shrink-0">
                                                 <AvatarFallback>{getInitials(booking.requester_name)}</AvatarFallback>
                                             </Avatar>
-                                            <div>
-                                                <h3 className="font-semibold text-lg">{booking.event_title}</h3>
-                                                <p className="text-sm text-muted-foreground">{booking.requester_name}</p>
-                                                <Badge variant="outline" className="mt-1">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-base md:text-lg">{booking.event_title}</h3>
+                                                <p className="text-sm text-muted-foreground truncate">{booking.requester_name}</p>
+                                                <Badge variant="outline" className="mt-1 text-xs">
                                                     {booking.department} - {booking.department_category}
                                                 </Badge>
                                             </div>
                                         </div>
-                                        <Badge className="bg-yellow-500 text-white">Pending</Badge>
+                                        <Badge className="bg-yellow-500 text-white shrink-0">Pending</Badge>
                                     </div>
 
                                     {/* Event Details Grid */}
-                                    <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 text-sm">
                                                 <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -376,11 +376,11 @@ export default function PendingApprovalsPage() {
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex gap-3 pt-2">
+                                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
                                         <Button
                                             onClick={() => handleApproval(booking.id)}
                                             disabled={processingId === booking.id}
-                                            className="flex-1 bg-green-600 hover:bg-green-700"
+                                            className="flex-1 bg-green-600 hover:bg-green-700 min-h-[44px]"
                                         >
                                             {processingId === booking.id ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -395,7 +395,7 @@ export default function PendingApprovalsPage() {
                                             onClick={() => openRejectDialog(booking.id)}
                                             disabled={processingId === booking.id}
                                             variant="destructive"
-                                            className="flex-1"
+                                            className="flex-1 min-h-[44px]"
                                         >
                                             {processingId === booking.id ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -409,8 +409,8 @@ export default function PendingApprovalsPage() {
                                     </div>
 
                                     {/* Requested timestamp */}
-                                    <div className="text-xs text-muted-foreground border-t pt-2">
-                                        Requested on: {booking.created_at ? format(new Date(booking.created_at), 'PPP \'at\' p') : 'Unknown'}
+                                    <div className="text-xs text-muted-foreground border-t pt-2 break-words">
+                                        Requested: {booking.created_at ? format(new Date(booking.created_at), 'PPP \'at\' p') : 'Unknown'}
                                     </div>
                                 </div>
                             </CardContent>

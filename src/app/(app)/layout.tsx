@@ -43,20 +43,6 @@ export default function AppLayout({
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
-            {isAdmin && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Admin"
-                  className="justify-start"
-                >
-                  <Link href="/admin">
-                    <ShieldCheck className="size-5" />
-                    <span className="group-data-[collapsible=icon]:hidden">Admin</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
             <AlertDialog>
               <SidebarMenuItem>
                 <AlertDialogTrigger asChild>
@@ -114,12 +100,12 @@ export default function AppLayout({
           </div>
           <UserNav />
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
+        <main className="flex-1 p-3 md:p-6 lg:p-8 bg-background">
           {children}
         </main>
         <footer className="border-t py-4 px-6 text-center text-xs text-muted-foreground bg-background/50 backdrop-blur-sm">
           <p className="mb-2">
-            Developed by <a href="https://aarx.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Thejaswin P (1IC23CS082)</a> and <span className="font-semibold text-foreground">Aarcha U (1IC21AI001)</span>
+            Developed by <a href="https://aarx.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Thejaswin P (1IC23CS082)</a> and <a href="https://aarch34.github.io/" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Aarcha U (1IC21AI001)</a>
           </p>
           <p className="flex items-center justify-center gap-3">
             <Link href="/terms" className="hover:underline hover:text-foreground transition-colors">

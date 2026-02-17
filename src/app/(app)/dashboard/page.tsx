@@ -132,10 +132,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
           Welcome, {isAdmin ? "Admin" : (user.firstName || "User")}!
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           {isAdmin
             ? "Overview of all booking requests and status"
             : "Overview of your booking requests and status"}
@@ -209,20 +209,20 @@ export default function DashboardPage() {
                   key={booking.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{booking.event_title || "Untitled Event"}</h3>
+                  <div className="flex-1 space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-sm md:text-base truncate">{booking.event_title || "Untitled Event"}</h3>
                       <Badge className={getStatusColor(booking.status)}>
                         {booking.status || "Unknown"}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>{booking.resource_name || "N/A"}</span>
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{booking.resource_name || "N/A"}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="h-3 w-3 shrink-0" />
                         <span>
                           {booking.booking_date
                             ? format(new Date(booking.booking_date), "MMM d, yyyy")
@@ -230,13 +230,13 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                        <Clock className="h-3 w-3 shrink-0" />
                         <span>
                           {formatTimeDisplay(booking)}
                         </span>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {booking.department || "No department"} • {booking.attendees || 0} attendees
                     </p>
                   </div>

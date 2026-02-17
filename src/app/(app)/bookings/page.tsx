@@ -420,10 +420,10 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-headline tracking-tight">Create a New Booking</h1>
-        <p className="text-muted-foreground">Fill in the details below to request a venue or turf slot.</p>
+        <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Create a New Booking</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Fill in the details below to request a venue or turf slot.</p>
       </div>
 
       {/* ✅ CONFLICT WARNING ALERT */}
@@ -454,13 +454,13 @@ export default function BookingsPage() {
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
-          <CardHeader>
-            <CardTitle>Booking Form</CardTitle>
-            <CardDescription>All requests are subject to approval by the department head.</CardDescription>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg md:text-xl">Booking Form</CardTitle>
+            <CardDescription className="text-xs md:text-sm">All requests are subject to approval by the department head.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-6">
+          <CardContent className="grid gap-4 md:gap-6 p-4 md:p-6">
             {/* Resource Type Selection */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Controller
                 name="resourceType"
                 control={form.control}
@@ -562,7 +562,7 @@ export default function BookingsPage() {
             </div>
 
             {/* Date & Attendees */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Controller
                 name="bookingDate"
                 control={form.control}
@@ -602,13 +602,13 @@ export default function BookingsPage() {
 
             {/* DURATION TYPE */}
             <div className="space-y-2">
-              <Label>Duration</Label>
-              <div className="flex gap-4">
+              <Label className="text-sm md:text-base">Duration</Label>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <Button
                   type="button"
                   variant={durationType === "custom" ? "default" : "outline"}
                   onClick={() => handleDurationChange("custom")}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px]"
                 >
                   Custom Slots
                 </Button>
@@ -616,7 +616,7 @@ export default function BookingsPage() {
                   type="button"
                   variant={durationType === "full-day" ? "default" : "outline"}
                   onClick={() => handleDurationChange("full-day")}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px] text-xs sm:text-sm"
                 >
                   Full Day (9:00 AM - 4:30 PM)
                 </Button>
@@ -629,7 +629,7 @@ export default function BookingsPage() {
               <Label>Select Time Slots {selectedSlots.length > 0 && `(${selectedSlots.length} selected)`}</Label>
 
               {/* Morning Slots */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {TIME_SLOTS.filter(slot => slot <= "13:00").map((slot) => {
                   const isSelected = selectedSlots.includes(slot);
                   return (
@@ -640,7 +640,7 @@ export default function BookingsPage() {
                       disabled={durationType === "full-day"}
                       onClick={() => toggleSlot(slot)}
                       className={cn(
-                        "h-12 text-sm font-medium transition-all",
+                        "h-10 sm:h-12 text-xs sm:text-sm font-medium transition-all",
                         isSelected && "bg-primary text-primary-foreground border-primary hover:bg-primary/90",
                         durationType === "full-day" && "opacity-50"
                       )}
@@ -658,7 +658,7 @@ export default function BookingsPage() {
               </div>
 
               {/* Afternoon Slots */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {TIME_SLOTS.filter(slot => slot >= "14:00").map((slot) => {
                   const isSelected = selectedSlots.includes(slot);
                   return (
@@ -669,7 +669,7 @@ export default function BookingsPage() {
                       disabled={durationType === "full-day"}
                       onClick={() => toggleSlot(slot)}
                       className={cn(
-                        "h-12 text-sm font-medium transition-all",
+                        "h-10 sm:h-12 text-xs sm:text-sm font-medium transition-all",
                         isSelected && "bg-primary text-primary-foreground border-primary hover:bg-primary/90",
                         durationType === "full-day" && "opacity-50"
                       )}
@@ -687,7 +687,7 @@ export default function BookingsPage() {
             </div>
 
             {/* DEPARTMENT SELECTION */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Controller
                 name="departmentCategory"
                 control={form.control}
@@ -744,8 +744,8 @@ export default function BookingsPage() {
             </div>
 
             {/* FACULTY IN-CHARGE SECTION */}
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-              <h3 className="font-semibold text-lg">Faculty In-charge Details</h3>
+            <div className="space-y-4 p-3 md:p-4 border rounded-lg bg-muted/30">
+              <h3 className="font-semibold text-base md:text-lg">Faculty In-charge Details</h3>
 
               <div className="space-y-2">
                 <Label htmlFor="faculty-incharge">Faculty In-charge Name</Label>
@@ -761,7 +761,7 @@ export default function BookingsPage() {
                 )}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contact-number">Contact Number</Label>
                   <Input
@@ -815,10 +815,11 @@ export default function BookingsPage() {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-end p-4 md:p-6">
             <Button
               type="submit"
               disabled={loading || !user || !isLoaded || !!conflictWarning}
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Submit for Approval

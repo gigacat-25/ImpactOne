@@ -3,7 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, useSidebar } from "@/components/ui/sidebar";
 import { LayoutDashboard, Calendar, CalendarPlus, History, Bot, ClipboardCheck } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
@@ -22,7 +22,13 @@ const adminLinks = [
 export function MainNav() {
   const pathname = usePathname();
   const { user } = useUser();
+  const { setOpenMobile } = useSidebar();
   const isAdmin = user?.primaryEmailAddress?.emailAddress === 'impact1.iceas@gmail.com';
+
+  const handleLinkClick = () => {
+    // Close sidebar on mobile when a link is clicked
+    setOpenMobile(false);
+  };
 
   return (
     <>
@@ -37,7 +43,7 @@ export function MainNav() {
                   tooltip={link.label}
                   className="justify-start"
                 >
-                  <Link href={link.href}>
+                  <Link href={link.href} onClick={handleLinkClick}>
                     <link.icon className="size-5" />
                     <span className="group-data-[collapsible=icon]:hidden">{link.label}</span>
                   </Link>
@@ -61,7 +67,7 @@ export function MainNav() {
                     tooltip={link.label}
                     className="justify-start"
                   >
-                    <Link href={link.href}>
+                    <Link href={link.href} onClick={handleLinkClick}>
                       <link.icon className="size-5" />
                       <span className="group-data-[collapsible=icon]:hidden">{link.label}</span>
                     </Link>
