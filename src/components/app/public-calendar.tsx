@@ -6,13 +6,93 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase, type Booking } from '@/lib/supabase/client';
 import { format, isSameDay, startOfToday } from "date-fns";
-import { Loader2, Clock, MapPin, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Clock, MapPin, Calendar as CalendarIcon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Festival Configuration
+interface Festival {
+    name: string;
+    emoji: string;
+    message: string;
+    month: number; // 0-indexed (Jan = 0)
+    day: number;
+}
+
+const FESTIVALS: Festival[] = [
+    // January
+    { name: "New Year's Day", emoji: "🎉", message: "Happy New Year! Wishing you a fantastic year ahead!", month: 0, day: 1 },
+    { name: "Makar Sankranti", emoji: "🪁", message: "Happy Makar Sankranti! May your life be filled with sweetness and joy!", month: 0, day: 14 },
+    { name: "Republic Day", emoji: "🇮🇳", message: "Happy Republic Day! Let's celebrate the spirit of our great nation!", month: 0, day: 26 },
+
+    // February
+    { name: "Valentine's Day", emoji: "💝", message: "Happy Valentine's Day! Spread love and kindness today!", month: 1, day: 14 },
+
+    // March
+    { name: "Holi", emoji: "🎨", message: "Happy Holi! May your life be filled with colors of joy!", month: 2, day: 14 }, // Approximate - varies yearly
+    { name: "Women's Day", emoji: "👩", message: "Happy Women's Day! Celebrating the strength and achievements of women!", month: 2, day: 8 },
+
+    // April
+    { name: "Ugadi/Gudi Padwa", emoji: "🌸", message: "Happy New Year! Wishing you prosperity and happiness!", month: 3, day: 9 }, // Approximate
+    { name: "Ambedkar Jayanti", emoji: "📚", message: "Remembering Dr. B.R. Ambedkar and his contributions to our nation!", month: 3, day: 14 },
+    { name: "Ram Navami", emoji: "🏹", message: "Happy Ram Navami! Celebrating the birth of Lord Rama!", month: 3, day: 17 }, // Approximate
+
+    // May
+    { name: "Buddha Purnima", emoji: "☸️", message: "Happy Buddha Purnima! May peace and wisdom guide you!", month: 4, day: 5 }, // Approximate
+    { name: "Mother's Day", emoji: "💐", message: "Happy Mother's Day! Celebrating all the amazing mothers!", month: 4, day: 11 }, // Second Sunday - approximate
+
+    // June
+    { name: "Father's Day", emoji: "👨‍👧‍👦", message: "Happy Father's Day! Celebrating all the wonderful fathers!", month: 5, day: 15 }, // Third Sunday - approximate
+    { name: "Eid al-Adha", emoji: "🌙", message: "Eid Mubarak! Wishing you joy, peace, and prosperity!", month: 5, day: 17 }, // Approximate - varies yearly
+
+    // July
+    { name: "Guru Purnima", emoji: "🙏", message: "Happy Guru Purnima! Honoring all our teachers and mentors!", month: 6, day: 3 }, // Approximate
+
+    // August
+    { name: "Independence Day", emoji: "🇮🇳", message: "Happy Independence Day! Celebrating 75+ years of freedom!", month: 7, day: 15 },
+    { name: "Raksha Bandhan", emoji: "🪢", message: "Happy Raksha Bandhan! Celebrating the bond of love!", month: 7, day: 19 }, // Approximate
+    { name: "Janmashtami", emoji: "🪈", message: "Happy Janmashtami! May Lord Krishna bless you!", month: 7, day: 26 }, // Approximate
+
+    // September
+    { name: "Ganesh Chaturthi", emoji: "🐘", message: "Happy Ganesh Chaturthi! Ganpati Bappa Morya!", month: 8, day: 7 }, // Approximate
+    { name: "Onam", emoji: "🌼", message: "Happy Onam! Wishing you a prosperous harvest season!", month: 8, day: 15 }, // Approximate
+    { name: "Teacher's Day", emoji: "📖", message: "Happy Teacher's Day! Thanking all the wonderful teachers!", month: 8, day: 5 },
+
+    // October
+    { name: "Gandhi Jayanti", emoji: "🕊️", message: "Happy Gandhi Jayanti! Remembering the Father of our Nation!", month: 9, day: 2 },
+    { name: "Navratri", emoji: "🎊", message: "Happy Navratri! May the divine bless you with strength and prosperity!", month: 9, day: 3 }, // Approximate - 9 days
+    { name: "Dussehra", emoji: "🏹", message: "Happy Dussehra! Victory of good over evil!", month: 9, day: 12 }, // Approximate
+
+    // November
+    { name: "Diwali", emoji: "🪔", message: "Happy Diwali! May your life be filled with light and prosperity!", month: 10, day: 1 }, // Approximate
+    { name: "Bhai Dooj", emoji: "👫", message: "Happy Bhai Dooj! Celebrating the bond between siblings!", month: 10, day: 3 }, // Approximate
+    { name: "Children's Day", emoji: "🧒", message: "Happy Children's Day! Celebrating the joy and innocence of childhood!", month: 10, day: 14 },
+    { name: "Guru Nanak Jayanti", emoji: "🙏", message: "Guru Nanak Jayanti! May his teachings inspire peace and harmony!", month: 10, day: 15 }, // Approximate
+
+    // December
+    { name: "Christmas Eve", emoji: "🎅", message: "Merry Christmas Eve! May your celebrations be joyful!", month: 11, day: 24 },
+    { name: "Christmas", emoji: "🎄", message: "Merry Christmas! Wishing you peace, joy, and happiness!", month: 11, day: 25 },
+    { name: "New Year's Eve", emoji: "🎆", message: "Happy New Year's Eve! Ready to welcome the new year with joy!", month: 11, day: 31 },
+];
+
+// Helper function to check if a date is a festival
+const getFestivalForDate = (date: Date | undefined): Festival | null => {
+    if (!date) return null;
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    return FESTIVALS.find(festival =>
+        festival.month === month && festival.day === day
+    ) || null;
+};
 
 export function PublicCalendar() {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [festivalDialog, setFestivalDialog] = useState<{ open: boolean; festival: Festival | null }>({
+        open: false,
+        festival: null
+    });
 
     useEffect(() => {
         async function fetchApprovedBookings() {
@@ -124,7 +204,14 @@ export function PublicCalendar() {
                     <Calendar
                         mode="single"
                         selected={date}
-                        onSelect={setDate}
+                        onSelect={(newDate) => {
+                            setDate(newDate);
+                            // Check if the selected date is a festival
+                            const festival = getFestivalForDate(newDate);
+                            if (festival) {
+                                setFestivalDialog({ open: true, festival });
+                            }
+                        }}
                         className="rounded-md border shadow-sm p-4 bg-white"
                         modifiers={{
                             booked: bookedDates,
@@ -193,6 +280,52 @@ export function PublicCalendar() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Festival Easter Egg Toast Notification */}
+            {festivalDialog.open && festivalDialog.festival && (
+                <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-500">
+                    <Card className="w-80 border-primary/20 shadow-xl bg-card relative">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setFestivalDialog({ open: false, festival: null })}
+                            className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted transition-colors z-10"
+                            aria-label="Close"
+                        >
+                            <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <CardContent className="p-5 space-y-3">
+                            {/* Emoji and Title */}
+                            <div className="flex items-center gap-3">
+                                <div className="text-4xl animate-bounce">
+                                    {festivalDialog.festival.emoji}
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-primary">
+                                        {festivalDialog.festival.name}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            {/* Message */}
+                            <p className="text-sm text-muted-foreground pl-1 leading-relaxed">
+                                {festivalDialog.festival.message}
+                            </p>
+
+                            {/* Bottom decoration */}
+                            <div className="flex items-center justify-center gap-2 pt-1">
+                                <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+                                <span className="text-xs text-primary font-medium">
+                                    Wishing you a wonderful celebration!
+                                </span>
+                                <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }
