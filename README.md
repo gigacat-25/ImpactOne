@@ -1,6 +1,6 @@
 # ImpactOne - Smart Resource Management System
 
-![ImpactOne Banner](https://via.placeholder.com/1200x400?text=ImpactOne+Resource+Management)
+![ImpactOne Banner](public/impact one logo.png)
 
 **ImpactOne** is a modern, AI-powered web application designed to streamline resource booking, venue management, and event planning within an organization. It features intelligent venue recommendations powered by **Google Genkit & Gemini**, robust authentication via **Clerk**, and a comprehensive dashboard for tracking bookings and history.
 
