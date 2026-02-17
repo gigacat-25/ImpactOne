@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Booking } from '@/lib/supabase/client';
 import { format } from "date-fns";
 import { Download, Printer, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 
 interface BookingAcknowledgmentProps {
     booking: Booking;
@@ -92,7 +93,16 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
                 <div ref={printRef} className="bg-white p-8 space-y-6 print:p-0">
                     {/* Header */}
                     <div className="text-center border-b-2 border-green-600 pb-4">
-                        <h1 className="text-3xl font-bold text-green-700 mb-2">ImpactOne</h1>
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <Image
+                                src="/favicon.png"
+                                alt="ImpactOne Logo"
+                                width={40}
+                                height={40}
+                                className="h-10 w-10"
+                            />
+                            <h1 className="text-3xl font-bold text-green-700">ImpactOne</h1>
+                        </div>
                         <h2 className="text-xl font-semibold">Booking Acknowledgment</h2>
                         <div className="flex items-center justify-center gap-2 mt-2">
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -214,7 +224,16 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
                     <div className="text-center pt-6 border-t text-sm text-gray-600">
                         <p>This is a computer-generated acknowledgment and does not require a signature.</p>
                         <p className="mt-1">Generated on {format(new Date(), 'PPP \'at\' p')}</p>
-                        <p className="mt-2 font-semibold">ImpactOne - Resource Booking System</p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                            <Image
+                                src="/favicon.png"
+                                alt="ImpactOne Logo"
+                                width={20}
+                                height={20}
+                                className="h-5 w-5"
+                            />
+                            <p className="font-semibold">ImpactOne - Resource Booking System</p>
+                        </div>
                     </div>
                 </div>
             </DialogContent>

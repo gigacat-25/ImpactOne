@@ -8,9 +8,10 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Bot, CalendarCheck, ShieldCheck, Loader2 } from "lucide-react";
+import { Bot, CalendarCheck, ShieldCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { PublicCalendar } from "@/components/app/public-calendar";
+import Image from "next/image";
 
 export default function HomePage() {
   const { isSignedIn, isLoaded } = useUser();
@@ -44,7 +45,13 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-16 flex items-center bg-background border-b">
         <Link href="#" className="flex items-center justify-center" prefetch={false}>
-          <Briefcase className="h-6 w-6 text-primary" />
+          <Image
+            src="/favicon.png"
+            alt="ImpactOne Logo"
+            width={28}
+            height={28}
+            className="h-7 w-7"
+          />
           <span className="ml-2 text-lg font-bold font-headline">ImpactOne</span>
         </Link>
         <nav className="ml-auto flex gap-3 sm:gap-4 items-center">

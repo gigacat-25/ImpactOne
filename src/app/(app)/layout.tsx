@@ -5,11 +5,12 @@ import { MainNav } from "@/components/app/main-nav";
 import { UserNav } from "@/components/app/user-nav";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Briefcase, LifeBuoy, Search, Mail, ShieldCheck } from "lucide-react";
+import { LifeBuoy, Search, Mail, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 export default function AppLayout({
   children,
@@ -25,7 +26,13 @@ export default function AppLayout({
       <Sidebar collapsible="icon" className="border-r bg-sidebar text-sidebar-foreground" side="left">
         <SidebarHeader className="p-3 justify-center">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Briefcase className="text-primary size-7" />
+            <Image
+              src="/favicon.png"
+              alt="ImpactOne Logo"
+              width={32}
+              height={32}
+              className="size-8"
+            />
             <h1 className="text-xl font-headline font-bold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
               ImpactOne
             </h1>
