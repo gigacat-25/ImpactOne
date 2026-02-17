@@ -11,7 +11,7 @@ export default function RegisterPage() {
           },
         }}
         signInUrl="/login"
-        fallbackRedirectUrl="https://www.aarx.space/dashboard"
+        fallbackRedirectUrl="https://www.impactone.space/dashboard"
       />
     </div>
   );
