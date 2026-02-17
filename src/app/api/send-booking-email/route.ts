@@ -156,11 +156,11 @@ export async function POST(request: Request) {
 
             ${action === 'Requested' ? `
                <p style="text-align: center;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL}/pending-approvals" class="button">Review Request</a>
+                <a href="${(process.env.NEXT_PUBLIC_APP_URL || 'https://www.impactone.space')}/pending-approvals" class="button">Review Request</a>
               </p>
             ` : isApproved ? `
               <p style="text-align: center;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}" class="button">View Booking Details</a>
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://www.impactone.space'}/bookings" class="button">View Booking Details</a>
               </p>
             ` : ''}
           </div>
@@ -176,6 +176,7 @@ export async function POST(request: Request) {
 
     console.log(`Sending email for action: ${action}`);
     console.log(`To: ${action === 'Requested' ? GMAIL_USER : booking.requester_email}`);
+    console.log(`Using App URL: ${process.env.NEXT_PUBLIC_APP_URL || 'https://www.impactone.space'}`);
 
     await transporter.sendMail({
       from: `"ImpactOne" <${GMAIL_USER}>`,
