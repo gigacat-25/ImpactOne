@@ -118,8 +118,17 @@ export default function AppLayout({
           {children}
         </main>
         <footer className="border-t py-4 px-6 text-center text-xs text-muted-foreground bg-background/50 backdrop-blur-sm">
-          <p>
+          <p className="mb-2">
             Developed by <a href="https://aarx.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Thejaswin P (1IC23CS082)</a> and <span className="font-semibold text-foreground">Aarcha U (1IC21AI001)</span>
+          </p>
+          <p className="flex items-center justify-center gap-3">
+            <Link href="/terms" className="hover:underline hover:text-foreground transition-colors">
+              Terms of Service
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:underline hover:text-foreground transition-colors">
+              Privacy Policy
+            </Link>
           </p>
         </footer>
       </div>

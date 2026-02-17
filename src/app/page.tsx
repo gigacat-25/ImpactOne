@@ -175,10 +175,10 @@ export default function HomePage() {
           &copy; {new Date().getFullYear()} ImpactOne. Developed by <a href="https://aarx.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">Thejaswin P (1IC23CS082)</a> and <span className="font-semibold text-primary">Aarcha U (1IC21AI001)</span>
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+          <Link href="/terms" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Terms of Service
           </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+          <Link href="/privacy" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Privacy
           </Link>
         </nav>
