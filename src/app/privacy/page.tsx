@@ -292,7 +292,7 @@ export default function PrivacyPage() {
                 <div className="container max-w-4xl">
                     <p className="text-center mb-3">
                         © {new Date().getFullYear()} ImpactOne. Developed by{" "}
-                        <a href="https://aarx.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">
+                        <a href="https://impactone.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">
                             Thejaswin P (1IC23CS082)
                         </a>{" "}
                         and{" "}

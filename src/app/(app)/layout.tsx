@@ -105,7 +105,7 @@ export default function AppLayout({
         </main>
         <footer className="border-t py-4 px-6 text-center text-xs text-muted-foreground bg-background/50 backdrop-blur-sm">
           <p className="mb-2">
-            Developed by <a href="https://aarx.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Thejaswin P (1IC23CS082)</a> and <a href="https://aarch34.github.io/" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Aarcha U (1IC21AI001)</a>
+            Developed by <a href="https://impactone.space" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Thejaswin P (1IC23CS082)</a> and <a href="https://aarch34.github.io/" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:underline">Aarcha U (1IC21AI001)</a>
           </p>
           <p className="flex items-center justify-center gap-3">
             <Link href="/terms" className="hover:underline hover:text-foreground transition-colors">
