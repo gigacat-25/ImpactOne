@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import type { Booking } from '@/lib/supabase/client';
 import { format } from "date-fns";
-import { Download, Printer, CheckCircle2 } from "lucide-react";
+import { Download, CheckCircle2 } from "lucide-react";
 
 interface BookingAcknowledgmentProps {
     booking: Booking;
@@ -37,9 +37,7 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
         return `${String(newHour).padStart(2, '0')}:${String(newMinute).padStart(2, '0')}`;
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
+
 
     const handleDownload = async () => {
         const jsPDF = (await import('jspdf')).default;
@@ -109,9 +107,21 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
         pdf.setFontSize(16);
         pdf.setTextColor(17, 24, 39);
         pdf.text('Booking Acknowledgment', W / 2, y + 6, { align: 'center' });
+        // Draw checkmark circle + APPROVED text (Helvetica can't render \u2713)
+        const approvedTextW = 24; // approx width of "APPROVED" at 9.5pt
+        const iconR = 3.2;
+        const iconCx = W / 2 - approvedTextW / 2 - iconR - 1.5;
+        const iconCy = y + 13 - 1.5;
+        pdf.setFillColor(22, 163, 74);
+        pdf.circle(iconCx, iconCy, iconR, 'F');
+        pdf.setDrawColor(255, 255, 255);
+        pdf.setLineWidth(0.8);
+        pdf.line(iconCx - 1.5, iconCy + 0.2, iconCx - 0.3, iconCy + 1.6);
+        pdf.line(iconCx - 0.3, iconCy + 1.6, iconCx + 1.7, iconCy - 1.4);
+        pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(9.5);
         pdf.setTextColor(22, 163, 74);
-        pdf.text('\u2713  APPROVED', W / 2, y + 13, { align: 'center' });
+        pdf.text('APPROVED', W / 2 - approvedTextW / 2 + 1, y + 13);
 
         if (collegeLogoData) pdf.addImage(collegeLogoData, 'PNG', W - margin - logoH, y, logoH, logoH);
 
@@ -243,16 +253,10 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
                 </DialogHeader>
 
                 <div className="space-y-4 print:hidden">
-                    <div className="flex flex-col sm:flex-row gap-2">
-                        <Button onClick={handlePrint} variant="outline" className="flex-1">
-                            <Printer className="h-4 w-4 mr-2" />
-                            Print
-                        </Button>
-                        <Button onClick={handleDownload} className="flex-1 bg-green-600 hover:bg-green-700">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download PDF
-                        </Button>
-                    </div>
+                    <Button onClick={handleDownload} className="w-full bg-green-600 hover:bg-green-700">
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                    </Button>
                 </div>
 
                 {/* Acknowledgment Content */}
