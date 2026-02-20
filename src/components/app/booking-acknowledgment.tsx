@@ -42,78 +42,197 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
     };
 
     const handleDownload = async () => {
-        // Import html2canvas and jspdf dynamically
-        const html2canvas = (await import('html2canvas')).default;
         const jsPDF = (await import('jspdf')).default;
 
-        if (printRef.current) {
-            // Clone off-screen to avoid dialog overflow clipping on mobile
-            const clone = printRef.current.cloneNode(true) as HTMLElement;
-            clone.style.position = 'fixed';
-            clone.style.left = '-9999px';
-            clone.style.top = '0';
-            clone.style.width = '794px'; // A4-ish width in px
-            clone.style.background = 'white';
-            document.body.appendChild(clone);
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            try {
-                const canvas = await html2canvas(clone, {
-                    scale: 2,
-                    logging: false,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    windowWidth: 794,
-                });
+        const W = 210;
+        const H = 297;
+        const margin = 10;
+        const contentW = W - margin * 2;
+        const footerY = H - 20;   // footer is always pinned here
+        let y = margin;
 
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4',
-                });
+        const logoUrl = typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : '/favicon.png';
+        const collegeLogoUrl = 'image.png';
 
-                const pageWidthMm = 210;  // A4 width in mm
-                const pageHeightMm = 297; // A4 height in mm
+        const loadImage = (url: string): Promise<string> =>
+            new Promise((resolve) => {
+                const img = new window.Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const c = document.createElement('canvas');
+                    c.width = img.width; c.height = img.height;
+                    c.getContext('2d')?.drawImage(img, 0, 0);
+                    resolve(c.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve('');
+                img.src = url;
+            });
 
-                // Scale the image to fill A4 width
-                const imgWidthMm = pageWidthMm;
-                const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+        // Section title + grey rule; returns new y
+        const sectionHeader = (title: string, yPos: number) => {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor(30, 30, 30);
+            pdf.text(title, margin, yPos);
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.3);
+            pdf.line(margin, yPos + 1.5, W - margin, yPos + 1.5);
+            return yPos + 10;
+        };
 
-                if (imgHeightMm <= pageHeightMm) {
-                    // Fits on one page
-                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidthMm, imgHeightMm);
-                } else {
-                    // Multi-page: slice the canvas into A4-height chunks
-                    const pageHeightPx = Math.floor((canvas.width * pageHeightMm) / imgWidthMm);
-                    let yOffsetPx = 0;
-                    let isFirstPage = true;
+        // Label + bold value in a column; returns bottom y
+        const field = (label: string, value: string, x: number, yPos: number, w: number) => {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(110, 110, 110);
+            pdf.text(label, x, yPos);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10.5);
+            pdf.setTextColor(20, 20, 20);
+            const lines = pdf.splitTextToSize(value, w - 3);
+            pdf.text(lines, x, yPos + 5.5);
+            return yPos + 5.5 + lines.length * 6.5;
+        };
 
-                    while (yOffsetPx < canvas.height) {
-                        if (!isFirstPage) pdf.addPage();
+        const [logoData, collegeLogoData] = await Promise.all([loadImage(logoUrl), loadImage(collegeLogoUrl)]);
 
-                        const sliceCanvas = document.createElement('canvas');
-                        sliceCanvas.width = canvas.width;
-                        sliceCanvas.height = Math.min(pageHeightPx, canvas.height - yOffsetPx);
+        // ── HEADER ────────────────────────────────────────────────────
+        const logoH = 13;
+        if (logoData) pdf.addImage(logoData, 'PNG', margin, y, logoH, logoH);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(13);
+        pdf.setTextColor(21, 128, 61);
+        pdf.text('ImpactOne', margin + logoH + 2, y + 9);
 
-                        const ctx = sliceCanvas.getContext('2d');
-                        if (ctx) {
-                            ctx.drawImage(canvas, 0, yOffsetPx, sliceCanvas.width, sliceCanvas.height, 0, 0, sliceCanvas.width, sliceCanvas.height);
-                        }
+        pdf.setFontSize(16);
+        pdf.setTextColor(17, 24, 39);
+        pdf.text('Booking Acknowledgment', W / 2, y + 6, { align: 'center' });
+        pdf.setFontSize(9.5);
+        pdf.setTextColor(22, 163, 74);
+        pdf.text('\u2713  APPROVED', W / 2, y + 13, { align: 'center' });
 
-                        const sliceData = sliceCanvas.toDataURL('image/png');
-                        const sliceHeightMm = (sliceCanvas.height * imgWidthMm) / canvas.width;
-                        pdf.addImage(sliceData, 'PNG', 0, 0, imgWidthMm, sliceHeightMm);
+        if (collegeLogoData) pdf.addImage(collegeLogoData, 'PNG', W - margin - logoH, y, logoH, logoH);
 
-                        yOffsetPx += pageHeightPx;
-                        isFirstPage = false;
-                    }
-                }
+        y += logoH + 4;
+        pdf.setDrawColor(22, 163, 74);
+        pdf.setLineWidth(0.55);
+        pdf.line(margin, y, W - margin, y);
+        y += 6;
 
-                pdf.save(`booking-acknowledgment-${booking.id}.pdf`);
-            } finally {
-                document.body.removeChild(clone);
-            }
+        // ── BOOKING REFERENCE ─────────────────────────────────────────
+        pdf.setFillColor(246, 246, 246);
+        pdf.roundedRect(margin, y, contentW, 13, 1.5, 1.5, 'F');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(120, 120, 120);
+        pdf.text('Booking Reference', margin + 4, y + 5);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(12);
+        pdf.setTextColor(20, 20, 20);
+        pdf.text(booking.id.substring(0, 8).toUpperCase(), margin + 4, y + 11.5);
+        y += 22;
+
+        // ── EVENT DETAILS ─────────────────────────────────────────────
+        y = sectionHeader('Event Details', y);
+        const colW = contentW / 2;
+        const col1 = margin;
+        const col2 = margin + colW;
+
+        let r1 = field('Event Title', booking.event_title, col1, y, colW);
+        let r2 = field('Department', `${booking.department} - ${booking.department_category}`, col2, y, colW);
+        y = Math.max(r1, r2) + 5;
+
+        r1 = field('Date', format(new Date(booking.booking_date), 'EEEE, MMMM d, yyyy'), col1, y, colW);
+        r2 = field('Time', formatTimeSlots(), col2, y, colW);
+        y = Math.max(r1, r2) + 5;
+
+        r1 = field('Expected Attendees', `${booking.attendees} people`, col1, y, colW);
+        r2 = field('Resource', `${booking.resource_name}${booking.sub_area ? ' - ' + booking.sub_area : ''}`, col2, y, colW);
+        y = Math.max(r1, r2) + 5;
+
+        if (booking.event_description) {
+            y = field('Description', booking.event_description, col1, y, contentW) + 5;
         }
+        y += 8;
+
+        // ── CONTACT INFORMATION ───────────────────────────────────────
+        y = sectionHeader('Contact Information', y);
+        r1 = field('Requester', `${booking.requester_name}\n${booking.requester_email}`, col1, y, colW);
+        if (booking.faculty_incharge) {
+            const fac = [booking.faculty_incharge, booking.contact_number, booking.contact_email]
+                .filter(Boolean).join('\n');
+            r2 = field('Faculty In-charge', fac, col2, y, colW);
+            y = Math.max(r1, r2) + 10;
+        } else {
+            y = r1 + 10;
+        }
+
+        // ── APPROVAL INFORMATION ──────────────────────────────────────
+        y = sectionHeader('Approval Information', y);
+        r1 = field('Status', 'Approved', col1, y, colW);
+        if (booking.reviewed_at) {
+            r2 = field('Approved On', format(new Date(booking.reviewed_at), "PPP 'at' p"), col2, y, colW);
+            y = Math.max(r1, r2) + 5;
+        } else {
+            y = r1 + 5;
+        }
+        if (booking.reviewed_by || booking.created_at) {
+            r1 = booking.reviewed_by ? field('Approved By', booking.reviewed_by, col1, y, colW) : y;
+            r2 = booking.created_at
+                ? field('Requested On', format(new Date(booking.created_at), "PPP 'at' p"), col2, y, colW)
+                : y;
+            y = Math.max(r1, r2) + 10;
+        }
+
+        // ── IMPORTANT NOTES — auto-expands to fill remaining space ─────
+        const notes = [
+            'Please arrive 15 minutes before your scheduled time.',
+            'Ensure the venue is left clean and in good condition.',
+            'Report any damages or issues to the facilities team immediately.',
+            'This acknowledgment must be presented if requested by staff.',
+        ];
+        const minNotesH = 8 + notes.length * 6.5;
+        const notesH = Math.max(minNotesH, footerY - y - 6);  // auto-fill remaining space
+
+        pdf.setFillColor(239, 246, 255);
+        pdf.roundedRect(margin, y, contentW, notesH, 2, 2, 'F');
+        pdf.setDrawColor(147, 197, 253);
+        pdf.setLineWidth(0.35);
+        pdf.roundedRect(margin, y, contentW, notesH, 2, 2, 'S');
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9.5);
+        pdf.setTextColor(30, 58, 138);
+        pdf.text('Important Notes:', margin + 4, y + 7);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(9);
+        pdf.setTextColor(30, 64, 175);
+        const bulletStart = y + 14;
+        const bulletSpacing = (notesH - 14 - 3) / notes.length;  // evenly distribute bullets vertically
+        notes.forEach((note, i) => {
+            pdf.text(`\u2022  ${note}`, margin + 4, bulletStart + i * bulletSpacing);
+        });
+
+        // ── FOOTER – always at bottom ─────────────────────────────────
+        pdf.setDrawColor(210, 210, 210);
+        pdf.setLineWidth(0.3);
+        pdf.line(margin, footerY, W - margin, footerY);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(130, 130, 130);
+        pdf.text('This is a computer-generated acknowledgment and does not require a signature.', W / 2, footerY + 5, { align: 'center' });
+        pdf.text(`Generated on ${format(new Date(), "PPP 'at' p")}`, W / 2, footerY + 10, { align: 'center' });
+        const fl = W / 2 - 24;
+        if (logoData) pdf.addImage(logoData, 'PNG', fl, footerY + 12, 4.5, 4.5);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(80, 80, 80);
+        pdf.text('ImpactOne - Resource Booking System', fl + 6, footerY + 15.5);
+
+        pdf.save(`booking-acknowledgment-${booking.id}.pdf`);
     };
 
     return (
