@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import type { Booking } from '@/lib/supabase/client';
 import { format } from "date-fns";
 import { Download, Printer, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
 
 interface BookingAcknowledgmentProps {
     booking: Booking;
@@ -48,36 +47,84 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
         const jsPDF = (await import('jspdf')).default;
 
         if (printRef.current) {
-            const canvas = await html2canvas(printRef.current, {
-                scale: 2,
-                logging: false,
-                useCORS: true,
-            });
+            // Clone off-screen to avoid dialog overflow clipping on mobile
+            const clone = printRef.current.cloneNode(true) as HTMLElement;
+            clone.style.position = 'fixed';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.width = '794px'; // A4-ish width in px
+            clone.style.background = 'white';
+            document.body.appendChild(clone);
 
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-            });
+            try {
+                const canvas = await html2canvas(clone, {
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    windowWidth: 794,
+                });
 
-            const imgWidth = 210; // A4 width in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4',
+                });
 
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            pdf.save(`booking-acknowledgment-${booking.id}.pdf`);
+                const pageWidthMm = 210;  // A4 width in mm
+                const pageHeightMm = 297; // A4 height in mm
+
+                // Scale the image to fill A4 width
+                const imgWidthMm = pageWidthMm;
+                const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+
+                if (imgHeightMm <= pageHeightMm) {
+                    // Fits on one page
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidthMm, imgHeightMm);
+                } else {
+                    // Multi-page: slice the canvas into A4-height chunks
+                    const pageHeightPx = Math.floor((canvas.width * pageHeightMm) / imgWidthMm);
+                    let yOffsetPx = 0;
+                    let isFirstPage = true;
+
+                    while (yOffsetPx < canvas.height) {
+                        if (!isFirstPage) pdf.addPage();
+
+                        const sliceCanvas = document.createElement('canvas');
+                        sliceCanvas.width = canvas.width;
+                        sliceCanvas.height = Math.min(pageHeightPx, canvas.height - yOffsetPx);
+
+                        const ctx = sliceCanvas.getContext('2d');
+                        if (ctx) {
+                            ctx.drawImage(canvas, 0, yOffsetPx, sliceCanvas.width, sliceCanvas.height, 0, 0, sliceCanvas.width, sliceCanvas.height);
+                        }
+
+                        const sliceData = sliceCanvas.toDataURL('image/png');
+                        const sliceHeightMm = (sliceCanvas.height * imgWidthMm) / canvas.width;
+                        pdf.addImage(sliceData, 'PNG', 0, 0, imgWidthMm, sliceHeightMm);
+
+                        yOffsetPx += pageHeightPx;
+                        isFirstPage = false;
+                    }
+                }
+
+                pdf.save(`booking-acknowledgment-${booking.id}.pdf`);
+            } finally {
+                document.body.removeChild(clone);
+            }
         }
     };
 
     return (
         <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="print:hidden">
                     <DialogTitle>Booking Acknowledgment</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-4 print:hidden">
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Button onClick={handlePrint} variant="outline" className="flex-1">
                             <Printer className="h-4 w-4 mr-2" />
                             Print
@@ -92,21 +139,39 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
                 {/* Acknowledgment Content */}
                 <div ref={printRef} className="bg-white p-8 space-y-6 print:p-0">
                     {/* Header */}
-                    <div className="text-center border-b-2 border-green-600 pb-4">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                            <Image
-                                src="/favicon.png"
-                                alt="ImpactOne Logo"
-                                width={40}
-                                height={40}
-                                className="h-10 w-10"
-                            />
-                            <h1 className="text-3xl font-bold text-green-700">ImpactOne</h1>
-                        </div>
-                        <h2 className="text-xl font-semibold">Booking Acknowledgment</h2>
-                        <div className="flex items-center justify-center gap-2 mt-2">
-                            <CheckCircle2 className="h-5 w-5 text-green-600" />
-                            <span className="text-green-600 font-medium">APPROVED</span>
+                    <div style={{ borderBottom: '2px solid #16a34a', paddingBottom: '16px', marginBottom: '8px' }}>
+                        {/* 3-column header: ImpactOne | Title | College Logo */}
+                        <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'space-between', gap: '12px' }}>
+                            {/* Left: ImpactOne */}
+                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', gap: '4px', flexShrink: 0 }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : '/favicon.png'}
+                                    alt="ImpactOne Logo"
+                                    style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+                                />
+                                <span style={{ fontSize: '16px', fontWeight: '700', color: '#15803d', lineHeight: 1 }}>ImpactOne</span>
+                            </div>
+
+                            {/* Center: Title */}
+                            <div style={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                                <h1 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 4px', color: '#111827' }}>Booking Acknowledgment</h1>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <span style={{ color: '#16a34a', fontWeight: '600', fontSize: '13px' }}>APPROVED</span>
+                                </div>
+                            </div>
+
+                            {/* Right: College Logo */}
+                            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src="image.png"
+                                    alt="College Logo"
+                                    crossOrigin="anonymous"
+                                    style={{ width: '72px', height: '72px', objectFit: 'contain' }}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -225,12 +290,11 @@ export function BookingAcknowledgment({ booking, onClose }: BookingAcknowledgmen
                         <p>This is a computer-generated acknowledgment and does not require a signature.</p>
                         <p className="mt-1">Generated on {format(new Date(), 'PPP \'at\' p')}</p>
                         <div className="flex items-center justify-center gap-2 mt-2">
-                            <Image
-                                src="/favicon.png"
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : '/favicon.png'}
                                 alt="ImpactOne Logo"
-                                width={20}
-                                height={20}
-                                className="h-5 w-5"
+                                style={{ width: '20px', height: '20px', objectFit: 'contain', display: 'block' }}
                             />
                             <p className="font-semibold">ImpactOne - Resource Booking System</p>
                         </div>
